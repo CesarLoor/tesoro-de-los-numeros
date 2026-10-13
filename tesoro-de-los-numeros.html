@@ -1,0 +1,797 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tesoro de los Números</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Pirata+One&display=swap">
+<style>
+/* Layout: one centered column (max 560px). A parchment sea chart on a night-sea backdrop; each island opens a problem scroll with a wooden keypad. Single deliberate dark-sea look. */
+:root{
+  --sea-deep:#0b2d3a; --sea:#145063; --foam:#8fd0cf;
+  --parchment:#f2deb0; --parchment-2:#e2c487; --ink:#3b2516; --ink-soft:#6e4c31;
+  --gold:#eaad31; --gold-deep:#b57610; --coral:#c9472f; --palm:#4f8a3c; --wash:#c3dccb; --sand:#ecd394;
+  --wood:#7b4a25; --wood-dark:#4e2d14; --ok:#2f7d43; --shade:rgba(10,20,25,.55);
+  --font-display:"Pirata One", Georgia, "Times New Roman", serif;
+  --font-body:"Andika", "Trebuchet MS", "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{
+  background-color:var(--sea-deep);
+  background-image:radial-gradient(ellipse at 50% -10%, var(--sea) 0%, transparent 65%);
+  background-attachment:fixed;
+  color:var(--parchment); font-family:var(--font-body); font-size:18px; line-height:1.45;
+}
+.wrap{max-width:560px; margin:0 auto; padding-inline:16px; padding-block:18px 48px; display:flex; flex-direction:column; gap:16px}
+button{font:inherit; cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold); outline-offset:3px}
+
+/* Header */
+.head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.brand h1{margin:0; font-family:var(--font-display); font-weight:400; font-size:2.4rem; line-height:1; color:var(--gold); letter-spacing:.01em; text-wrap:balance}
+.brand p{margin:4px 0 0; color:var(--foam); font-size:.95rem}
+.purse{display:flex; align-items:center; gap:10px}
+.coinbox{display:flex; align-items:center; gap:8px; background:var(--wood-dark); border:2px solid var(--gold-deep); border-radius:999px; padding:4px 14px 4px 6px; font-weight:700; font-variant-numeric:tabular-nums}
+.coinbox .coin{width:24px; height:24px}
+.coinbox.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.18)}}
+.iconbtn{width:42px; height:42px; border-radius:50%; border:2px solid var(--gold-deep); background:var(--wood-dark); color:var(--parchment); display:grid; place-items:center; padding:0}
+.iconbtn svg{width:22px; height:22px}
+
+/* Coins */
+.coin{display:inline-block; width:18px; height:18px; border-radius:50%; flex:none;
+  background:radial-gradient(circle at 35% 35%, #fff2b8 0 12%, var(--gold) 35%, var(--gold-deep) 100%);
+  box-shadow:inset 0 0 0 2px var(--gold-deep)}
+
+/* Map */
+.chart{background:var(--parchment); color:var(--ink); border-radius:8px 16px 10px 14px; padding:10px;
+  box-shadow:0 14px 34px rgba(0,0,0,.5), inset 0 0 50px rgba(140,90,30,.35)}
+.chart svg{display:block; width:100%; height:auto}
+.sea-wash{fill:var(--wash)}
+.frame{fill:none; stroke:var(--ink-soft); stroke-width:1.5}
+.wave{fill:none; stroke:var(--ink-soft); opacity:.4; stroke-width:1.6; stroke-linecap:round}
+.route{fill:none; stroke:var(--coral); stroke-width:3.5; stroke-dasharray:1 10; stroke-linecap:round}
+.shallow{fill:var(--foam); opacity:.55}
+.sand{fill:var(--sand); stroke:var(--ink-soft); stroke-width:1.5}
+.green{fill:var(--palm)}
+.trunk{stroke:var(--wood); stroke-width:3; fill:none; stroke-linecap:round}
+.leaf{fill:var(--palm); stroke:var(--ink-soft); stroke-width:.8}
+.rock{fill:#cbbf9f; stroke:var(--ink-soft); stroke-width:1.5}
+.eye{fill:var(--ink)}
+.volc{fill:#9a7a55; stroke:var(--ink-soft); stroke-width:1.5}
+.lava{fill:var(--coral)}
+.isl-label{font-family:var(--font-display); font-size:20px; fill:var(--ink); text-anchor:middle}
+.isl-sub{font-family:var(--font-body); font-size:12.5px; font-weight:700; fill:var(--ink-soft); text-anchor:middle}
+.badge circle{fill:var(--gold); stroke:var(--ink); stroke-width:2}
+.badge text{font:700 22px var(--font-body); fill:var(--ink); text-anchor:middle; dominant-baseline:central}
+.flagpole{stroke:var(--ink); stroke-width:2}
+.flagcloth{fill:var(--coral)}
+.island{outline:none}
+.island.locked{opacity:.45; filter:url(#gray)}
+.island:not(.locked){cursor:pointer}
+.island .ring{fill:none; stroke:var(--coral); stroke-width:3; stroke-dasharray:7 7; opacity:0; transform-box:fill-box; transform-origin:center}
+.island.next .ring{opacity:1; animation:spin 14s linear infinite}
+.island:focus-visible .sand{stroke:var(--coral); stroke-width:4}
+.island:not(.locked):hover .sand{stroke-width:3}
+@keyframes spin{to{transform:rotate(360deg)}}
+.xmark{stroke:var(--coral); stroke-width:6; stroke-linecap:round}
+.compass circle{fill:var(--parchment); stroke:var(--ink-soft); stroke-width:1.5}
+.compass path{fill:var(--ink-soft)}
+.compass path.n{fill:var(--coral)}
+.compass text{font:700 11px var(--font-body); fill:var(--ink); text-anchor:middle}
+.hull{fill:var(--wood); stroke:var(--wood-dark); stroke-width:1.5}
+.mast{stroke:var(--wood-dark); stroke-width:2.5}
+.sail{fill:#fbf3df; stroke:var(--ink-soft); stroke-width:1}
+.jolly{fill:#1d1410}
+#ship{transition:transform 1.6s cubic-bezier(.45,.05,.3,1)}
+.ship-bob{animation:bob 2.6s ease-in-out infinite; transform-box:fill-box; transform-origin:center bottom}
+@keyframes bob{50%{transform:translateY(-3px) rotate(-3deg)}}
+
+/* Progress strip under map */
+.voyage{display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center; background:rgba(0,0,0,.22); border:1px solid rgba(234,173,49,.35); border-radius:14px; padding:14px}
+.voyage svg{width:104px; height:104px; display:block; border-radius:6px}
+.voyage h2{margin:0 0 4px; font-family:var(--font-display); font-weight:400; font-size:1.5rem; color:var(--gold)}
+.voyage p{margin:0; font-size:.95rem; color:var(--parchment)}
+.mini-bg{fill:var(--parchment)}
+.mini-route{fill:none; stroke:var(--coral); stroke-width:2.5; stroke-dasharray:1 5; stroke-linecap:round}
+.mini-x{stroke:var(--coral); stroke-width:4; stroke-linecap:round}
+.fog{fill:var(--sea); stroke:var(--sea-deep); stroke-width:2; transition:opacity .6s}
+.fog-q{font:700 22px var(--font-display); fill:var(--foam); text-anchor:middle; dominant-baseline:central; transition:opacity .6s}
+.reset{background:none; border:none; color:var(--foam); text-decoration:underline; padding:4px 0; font-size:.9rem; justify-self:start; margin-top:6px}
+
+/* Island screen */
+.topbar{display:flex; align-items:center; gap:12px}
+.back{background:var(--wood-dark); color:var(--parchment); border:2px solid var(--gold-deep); border-radius:999px; padding:6px 14px; font-weight:700}
+.topbar h2{margin:0; flex:1; min-width:0; font-family:var(--font-display); font-weight:400; font-size:1.8rem; color:var(--gold); line-height:1.05}
+.pips{display:flex; gap:8px; justify-content:center}
+.pip{width:30px; height:30px; border-radius:50%; border:2px dashed var(--foam); opacity:.6; display:grid; place-items:center; font-size:.8rem; font-weight:700; color:var(--foam)}
+.pip.now{opacity:1; border-style:solid; border-color:var(--gold); color:var(--gold)}
+.pip.done{opacity:1; border:none; background:radial-gradient(circle at 35% 35%, #fff2b8 0 12%, var(--gold) 35%, var(--gold-deep) 100%); color:var(--ink)}
+.pip.miss{opacity:1; border:2px solid var(--coral); color:var(--coral)}
+.scroll{background:var(--parchment); color:var(--ink); border-radius:6px; padding:20px 20px 18px; position:relative;
+  box-shadow:0 12px 28px rgba(0,0,0,.45), inset 0 0 40px rgba(140,90,30,.3);
+  border-top:10px solid var(--parchment-2); border-bottom:10px solid var(--parchment-2)}
+.qlabel{margin:0; font-size:.78rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft)}
+.story{margin:6px 0 14px; font-size:1.28rem; line-height:1.5}
+.equation{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.35em; font-size:2.3rem; font-weight:700; font-variant-numeric:tabular-nums; padding-block:6px}
+.equation .op{color:var(--coral)}
+.blank{min-width:2.3em; min-height:1.35em; padding:0 .2em; border:3px dashed var(--ink-soft); border-radius:10px; display:inline-grid; place-items:center; background:rgba(255,255,255,.35); color:var(--ink)}
+.blank.right{border-style:solid; border-color:var(--ok); color:var(--ok)}
+.blank.wrong{border-style:solid; border-color:var(--coral); color:var(--coral); animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.feedback{min-height:1.6em; margin:6px 0 0; text-align:center; font-weight:700; font-size:1.1rem}
+.feedback.good{color:var(--ok)}
+.feedback.bad{color:var(--coral)}
+.hint{margin-top:12px; border-top:2px dashed var(--parchment-2); padding-top:12px}
+.hint p{margin:0 0 10px; font-size:1.05rem}
+.hint p b{color:var(--coral)}
+.dots{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center}
+.grp{display:flex; flex-wrap:wrap; gap:4px; max-width:150px; padding:6px; border:2px solid var(--parchment-2); border-radius:10px}
+.grp.g1 .coin{filter:hue-rotate(-35deg) saturate(1.3)}
+.grp.g2 .coin{filter:grayscale(.85) brightness(1.15)}
+.plus{font-weight:700; font-size:1.4rem; color:var(--coral)}
+.coin.gone{position:relative; opacity:.45}
+.coin.gone::after{content:""; position:absolute; inset:-2px; background:linear-gradient(45deg,transparent 44%,var(--coral) 44% 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,var(--coral) 44% 56%,transparent 56%)}
+.rows{display:flex; flex-direction:column; gap:5px; align-items:center}
+.row{display:flex; gap:4px; padding:3px 6px; border-radius:8px; background:rgba(123,74,37,.12)}
+.parrot-tip{display:flex; gap:10px; align-items:flex-start}
+
+.controls{display:flex; flex-direction:column; gap:12px}
+.helpbtn{align-self:center; background:none; border:2px solid var(--foam); color:var(--foam); border-radius:999px; padding:8px 18px; font-weight:700; display:flex; gap:8px; align-items:center}
+.helpbtn[disabled]{opacity:.4; cursor:default}
+.keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.key{min-height:58px; border-radius:12px; border:none; font-size:1.7rem; font-weight:700; color:var(--parchment);
+  background:linear-gradient(180deg, #8d5a2f, var(--wood)); box-shadow:0 5px 0 var(--wood-dark), inset 0 1px 0 rgba(255,255,255,.18);
+  font-variant-numeric:tabular-nums; transition:transform .06s, box-shadow .06s}
+.key:active{transform:translateY(4px); box-shadow:0 1px 0 var(--wood-dark)}
+.key.go{background:linear-gradient(180deg, #f3c25a, var(--gold)); color:var(--ink); box-shadow:0 5px 0 var(--gold-deep); font-size:1.15rem}
+.key.go:active{box-shadow:0 1px 0 var(--gold-deep)}
+.key.del{font-size:1.2rem}
+.nextbtn{min-height:62px; border-radius:12px; border:none; font-size:1.3rem; font-weight:700; color:var(--ink); background:linear-gradient(180deg, #f3c25a, var(--gold)); box-shadow:0 5px 0 var(--gold-deep)}
+
+/* Modal + final */
+.modal{position:fixed; inset:0; background:var(--shade); display:grid; place-items:center; padding:16px; z-index:10}
+.card{background:var(--parchment); color:var(--ink); border-radius:10px; padding:24px 22px; max-width:420px; width:100%; text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.6), inset 0 0 40px rgba(140,90,30,.3); display:flex; flex-direction:column; gap:12px; align-items:center;
+  animation:pop .45s cubic-bezier(.3,1.4,.5,1)}
+@keyframes pop{from{transform:scale(.85); opacity:.3}}
+.card h2{margin:0; font-family:var(--font-display); font-weight:400; font-size:2.2rem; color:var(--coral); line-height:1.05; text-wrap:balance}
+.card p{margin:0; font-size:1.1rem}
+.card .big{font-size:1.5rem; font-weight:700; display:flex; gap:8px; align-items:center; justify-content:center}
+.card .big .coin{width:28px; height:28px}
+.card button{min-height:54px; padding:0 26px; border-radius:12px; border:none; font-size:1.15rem; font-weight:700; color:var(--ink); background:linear-gradient(180deg, #f3c25a, var(--gold)); box-shadow:0 5px 0 var(--gold-deep)}
+.card svg.piece{width:120px; height:120px; border-radius:6px}
+.final{display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center}
+.final h2{margin:0; font-family:var(--font-display); font-weight:400; font-size:2.8rem; color:var(--gold); line-height:1; text-wrap:balance}
+.final p{margin:0; max-width:34ch}
+.rank{font-family:var(--font-display); font-size:1.9rem; color:var(--parchment)}
+.chest{width:min(260px,80%); height:auto}
+.chest .box{fill:var(--wood); stroke:var(--wood-dark); stroke-width:3}
+.chest .band{fill:var(--gold); stroke:var(--gold-deep); stroke-width:2}
+.chest .glow{fill:var(--gold); opacity:0; animation:glow 1s .9s forwards}
+.chest .lid{transform-box:fill-box; transform-origin:8% 100%; animation:open 1.1s .4s cubic-bezier(.3,1.3,.5,1) forwards}
+@keyframes open{to{transform:rotate(-28deg) translate(-6px,-14px)}}
+@keyframes glow{to{opacity:.9}}
+.final .tally{display:flex; gap:10px; align-items:center; font-size:1.6rem; font-weight:700}
+.final .tally .coin{width:30px; height:30px}
+.final button{min-height:56px; padding:0 28px; border-radius:12px; border:none; font-size:1.2rem; font-weight:700; color:var(--ink); background:linear-gradient(180deg, #f3c25a, var(--gold)); box-shadow:0 5px 0 var(--gold-deep)}
+#rain{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:20}
+
+@media (max-width:420px){
+  .brand h1{font-size:2rem}
+  .story{font-size:1.15rem}
+  .equation{font-size:1.9rem}
+  .voyage{grid-template-columns:1fr; justify-items:center; text-align:center}
+  .reset{justify-self:center}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important; transition:none!important}
+  .chest .lid{transform:rotate(-28deg) translate(-6px,-14px)}
+  .chest .glow{opacity:.9}
+}
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div class="brand">
+      <h1>Tesoro de los Números</h1>
+      <p>Cuatro islas, veinte retos y un cofre escondido</p>
+    </div>
+    <div class="purse">
+      <div class="coinbox" id="purse" aria-label="Doblones ganados"><span class="coin"></span><span id="purse-n">0</span></div>
+      <button class="iconbtn" id="mute" aria-label="Silenciar sonido" title="Sonido">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="mute-wave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path id="mute-x" d="M17 9l5 6M22 9l-5 6" hidden/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAP -->
+  <section id="map-screen" class="controls">
+    <div class="chart">
+      <svg id="map" viewBox="0 0 400 520" role="group" aria-label="Mapa de las islas">
+        <defs>
+          <filter id="gray"><feColorMatrix type="saturate" values="0"/></filter>
+        </defs>
+        <rect class="sea-wash" x="6" y="6" width="388" height="508" rx="6"/>
+        <rect class="frame" x="12" y="12" width="376" height="496" rx="4"/>
+        <g id="waves"></g>
+        <path class="route" d="M100,440 C180,478 250,430 295,345 C320,290 170,305 105,240 C55,190 215,205 290,150 C340,112 215,30 130,62"/>
+        <g class="compass" transform="translate(348,468)">
+          <circle r="26"/>
+          <path class="n" d="M0,-22 L5,0 L-5,0 Z"/>
+          <path d="M0,22 L5,0 L-5,0 Z M22,0 L0,5 L0,-5 Z M-22,0 L0,5 L0,-5 Z" opacity=".55"/>
+          <text y="-30">N</text>
+        </g>
+        <g id="islands"></g>
+        <g id="ship"><g class="ship-bob">
+          <path class="hull" d="M-24,2 L24,2 L16,16 L-16,16 Z"/>
+          <line class="mast" x1="0" y1="2" x2="0" y2="-30"/>
+          <path class="sail" d="M2,-26 Q20,-13 2,-1 Z"/>
+          <path class="sail" d="M-2,-24 Q-19,-12 -2,0 Z"/>
+          <path class="jolly" d="M0,-30 L-12,-34 L0,-38 Z"/>
+        </g></g>
+      </svg>
+    </div>
+    <div class="voyage">
+      <svg id="mini" viewBox="0 0 120 120" aria-hidden="true"></svg>
+      <div style="min-width:0; display:grid">
+        <h2 id="voy-title">Trozos del mapa</h2>
+        <p id="voy-text"></p>
+        <button class="reset" id="reset" hidden>Empezar de nuevo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ISLAND -->
+  <section id="island-screen" class="controls" hidden>
+    <div class="topbar">
+      <button class="back" id="back">← Mapa</button>
+      <h2 id="isl-name"></h2>
+    </div>
+    <div class="pips" id="pips" aria-label="Progreso de la isla"></div>
+    <article class="scroll">
+      <p class="qlabel" id="qlabel"></p>
+      <p class="story" id="story"></p>
+      <div class="equation" id="equation" aria-live="polite"></div>
+      <p class="feedback" id="feedback" aria-live="polite"></p>
+      <div class="hint" id="hint" hidden></div>
+    </article>
+    <button class="helpbtn" id="helpbtn">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20c-2-4-2-9 2-12 3-2 7-2 9 1 1 2 0 4-2 4h-2c1 3 0 6-2 7" fill="#4f8a3c"/><circle cx="14" cy="8" r="1.4" fill="#1d1410"/><path d="M17.5 9.5l3 1-3 1.5z" fill="#eaad31"/></svg>
+      Ayuda del loro
+    </button>
+    <div class="keypad" id="keypad"></div>
+    <button class="nextbtn" id="next" hidden>Siguiente reto →</button>
+  </section>
+
+  <!-- FINAL -->
+  <section id="final-screen" class="final" hidden>
+    <svg class="chest" viewBox="0 0 220 180" aria-hidden="true">
+      <ellipse class="glow" cx="110" cy="78" rx="80" ry="22"/>
+      <g>
+        <circle class="band" cx="80" cy="82" r="9"/><circle class="band" cx="100" cy="76" r="9"/><circle class="band" cx="122" cy="78" r="9"/><circle class="band" cx="142" cy="84" r="9"/><circle class="band" cx="110" cy="88" r="9"/>
+      </g>
+      <rect class="box" x="30" y="86" width="160" height="80" rx="6"/>
+      <rect class="band" x="30" y="100" width="160" height="10"/>
+      <rect class="band" x="98" y="112" width="24" height="30" rx="3"/>
+      <g class="lid">
+        <path class="box" d="M30,88 L30,60 Q110,20 190,60 L190,88 Z"/>
+        <path class="band" d="M30,76 Q110,38 190,76 L190,84 Q110,46 30,84 Z"/>
+      </g>
+    </svg>
+    <h2>¡Encontraste el tesoro!</h2>
+    <div class="tally"><span class="coin"></span><span id="final-n">0</span> de 40 doblones</div>
+    <div class="rank" id="rank"></div>
+    <p id="rank-text"></p>
+    <button id="again">Nueva aventura</button>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <h2 id="m-title"></h2>
+    <div class="big" id="m-coins"></div>
+    <svg class="piece" id="m-piece" viewBox="0 0 120 120" aria-hidden="true"></svg>
+    <p id="m-text"></p>
+    <button id="m-btn"></button>
+  </div>
+</div>
+<canvas id="rain" hidden></canvas>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const r = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ---------- Islands and problem generators ----------
+   Each island has 5 levels (easy → hard). Each level has several stories;
+   the game picks one not seen before and fresh random numbers every time. */
+const V = (nums, ...texts) => texts.map(t => () => { const n = nums(); return { nums: n, text: t(...n) }; });
+const divNums = (b0, b1, q0, q1) => () => { const b = r(b0, b1), q = r(q0, q1); return [b * q, b]; };
+const ISLANDS = [
+  { id:'suma', name:'Isla del Coco', op:'+', word:'suma', pos:[100,440], seed:1.3, deco:'palm',
+    levels:[
+      V(() => [r(2,6), r(2,6)],
+        (a,b) => `El capitán Barbarroja encontró ${a} monedas en la playa y ${b} monedas más bajo una palmera. ¿Cuántas monedas tiene ahora?`,
+        (a,b) => `En la red había ${a} peces. Después pescaron ${b} más. ¿Cuántos peces hay en la red?`,
+        (a,b) => `Un pirata guarda ${a} parches en su baúl y compra ${b} más en el puerto. ¿Cuántos parches tiene?`,
+        (a,b) => `En la cubierta descansan ${a} gaviotas y llegan ${b} más. ¿Cuántas gaviotas hay ahora?`),
+      V(() => [r(6,12), r(3,8)],
+        (a,b) => `En el barco hay ${a} piratas. Suben ${b} piratas más. ¿Cuántos piratas hay en el barco ahora?`,
+        (a,b) => `La capitana Coral tiene ${a} mapas y encuentra ${b} mapas más en una cueva. ¿Cuántos mapas tiene?`,
+        (a,b) => `El cocinero del barco hizo ${a} panes en la mañana y ${b} en la noche. ¿Cuántos panes hizo?`,
+        (a,b) => `Una tortuga puso ${a} huevos en la playa y otra tortuga puso ${b}. ¿Cuántos huevos hay?`),
+      V(() => [r(1,4)*10+r(1,4), r(1,4)*10+r(1,5)],
+        (a,b) => `El loro Pancho dijo ${a} palabras en la mañana y ${b} en la tarde. ¿Cuántas palabras dijo en todo el día?`,
+        (a,b) => `El barco navegó ${a} millas el lunes y ${b} millas el martes. ¿Cuántas millas navegó?`,
+        (a,b) => `En el puerto hay ${a} botes rojos y ${b} botes azules. ¿Cuántos botes hay?`),
+      V(() => [r(1,3)*10+r(5,9), r(1,3)*10+r(5,9)],
+        (a,b) => `La tripulación recogió ${a} cocos el lunes y ${b} cocos el martes. ¿Cuántos cocos recogieron?`,
+        (a,b) => `El cofre de plata tiene ${a} monedas y el cofre de oro tiene ${b}. ¿Cuántas monedas hay en los dos cofres?`,
+        (a,b) => `Los piratas cantaron ${a} canciones en la fiesta y ${b} en el viaje de regreso. ¿Cuántas canciones cantaron?`),
+      V(() => [r(4,12), r(4,12), r(4,12)],
+        (a,b,c) => `En el cofre hay ${a} rubíes, ${b} esmeraldas y ${c} perlas. ¿Cuántas joyas hay en total?`,
+        (a,b,c) => `Llegan tres botes a la isla: uno con ${a} piratas, otro con ${b} y otro con ${c}. ¿Cuántos piratas llegaron?`,
+        (a,b,c) => `El lunes encontramos ${a} conchas, el martes ${b} y el miércoles ${c}. ¿Cuántas conchas encontramos?`),
+    ]},
+  { id:'resta', name:'Isla Calavera', op:'−', word:'resta', pos:[295,345], seed:4.1, deco:'skull',
+    levels:[
+      V(() => [r(6,10), r(1,5)],
+        (a,b) => `Había ${a} gaviotas en el mástil. Se fueron volando ${b}. ¿Cuántas gaviotas quedan?`,
+        (a,b) => `El pirata tenía ${a} galletas y se comió ${b}. ¿Cuántas galletas le quedan?`,
+        (a,b) => `En la playa había ${a} cangrejos y ${b === 1 ? 'se escondió' : 'se escondieron'} ${b} en la arena. ¿Cuántos cangrejos se ven ahora?`,
+        (a,b) => `El capitán tenía ${a} velas encendidas y el viento apagó ${b}. ¿Cuántas siguen encendidas?`),
+      V(() => [r(12,20), r(3,9)],
+        (a,b) => `El cañón tenía ${a} balas. Disparó ${b}. ¿Cuántas balas le quedan?`,
+        (a,b) => `Había ${a} botellas en la bodega y en la tormenta se rompieron ${b}. ¿Cuántas botellas quedan?`,
+        (a,b) => `La tripulación tenía ${a} manzanas y se comieron ${b}. ¿Cuántas manzanas quedan?`,
+        (a,b) => `En el muelle había ${a} barcos y zarparon ${b}. ¿Cuántos barcos quedan en el muelle?`),
+      V(() => { const u = r(5,9); return [r(4,9)*10+u, r(1,3)*10+r(1,u)]; },
+        (a,b) => `El barco llevaba ${a} barriles de agua. En el viaje se usaron ${b}. ¿Cuántos barriles quedan?`,
+        (a,b) => `Un pirata tenía ${a} monedas y pagó ${b} por un loro nuevo. ¿Cuántas monedas le quedan?`,
+        (a,b) => `Había una cuerda de ${a} metros y se cortaron ${b} metros. ¿Cuántos metros de cuerda quedan?`),
+      V(() => [r(5,9)*10+r(0,4), r(1,3)*10+r(5,9)],
+        (a,b) => `La capitana Coral tiene ${a} doblones y Pata de Palo tiene ${b}. ¿Cuántos doblones más tiene la capitana Coral?`,
+        (a,b) => `El barco grande tiene ${a} cañones y el barco pequeño tiene ${b}. ¿Cuántos cañones más tiene el grande?`,
+        (a,b) => `En Isla Calavera hay ${a} palmeras y en la Isla del Coco hay ${b}. ¿Cuántas palmeras más hay en Isla Calavera?`),
+      V(() => [r(60,99), r(15,45)],
+        (a,b) => `La isla del tesoro está a ${a} millas. Ya navegamos ${b} millas. ¿Cuántas millas faltan?`,
+        (a,b) => `El cofre tenía ${a} perlas y un pulpo travieso se llevó ${b}. ¿Cuántas perlas quedan en el cofre?`,
+        (a,b) => `Para llegar al faro hay que subir ${a} escalones. Ya subimos ${b}. ¿Cuántos escalones faltan?`),
+    ]},
+  { id:'mult', name:'Isla de los Loros', op:'×', word:'multiplicación', pos:[105,240], seed:2.7, deco:'palm',
+    levels:[
+      V(() => [r(2,5), r(2,5)],
+        (a,b) => `Hay ${a} cofres y cada cofre tiene ${b} monedas. ¿Cuántas monedas hay en total?`,
+        (a,b) => `Hay ${a} piratas y cada uno lleva ${b} anillos. ¿Cuántos anillos hay en total?`,
+        (a,b) => `En la mesa hay ${a} platos con ${b} galletas en cada plato. ¿Cuántas galletas hay?`),
+      [
+        ...V(() => [r(3,9), 2],
+          a => `En una rama hay ${a} loros. Cada loro tiene 2 patas. ¿Cuántas patas hay en la rama?`,
+          a => `Hay ${a} piratas y cada uno usa 2 botas. ¿Cuántas botas hay?`),
+        ...V(() => [r(3,8), 3],
+          a => `El capitán tiene ${a} sombreros y cada sombrero tiene 3 picos. ¿Cuántos picos hay?`),
+      ],
+      V(() => [r(3,6), r(4,8)],
+        (a,b) => `Llegaron ${a} barcos piratas. Cada barco tiene ${b} cañones. ¿Cuántos cañones hay?`,
+        (a,b) => `Hay ${a} bolsas y cada bolsa tiene ${b} doblones. ¿Cuántos doblones hay?`,
+        (a,b) => `El barco tiene ${a} velas y cada vela tiene ${b} parches cosidos. ¿Cuántos parches hay?`),
+      [
+        ...V(() => [r(2,6), 8], a => `Bajo el muelle viven ${a} pulpos. Cada pulpo tiene 8 tentáculos. ¿Cuántos tentáculos hay?`),
+        ...V(() => [r(3,7), 5], a => `En la playa hay ${a} estrellas de mar y cada una tiene 5 brazos. ¿Cuántos brazos hay?`),
+        ...V(() => [r(3,6), 7], a => `Los piratas navegaron ${a} semanas. Cada semana tiene 7 días. ¿Cuántos días navegaron?`),
+      ],
+      V(() => [r(6,9), r(6,9)],
+        (a,b) => `Para la foto, los piratas forman ${a} filas con ${b} piratas en cada fila. ¿Cuántos piratas hay?`,
+        (a,b) => `El barco hizo ${a} viajes y en cada viaje llevó ${b} barriles. ¿Cuántos barriles llevó en total?`,
+        (a,b) => `En el almacén hay ${a} cajas con ${b} cocos cada una. ¿Cuántos cocos hay?`),
+    ]},
+  { id:'div', name:'Isla del Volcán', op:'÷', word:'división', pos:[290,150], seed:5.6, deco:'volcano',
+    levels:[
+      V(divNums(2,3,2,5),
+        (n,b) => `Hay ${n} monedas para repartir en partes iguales entre ${b} piratas. ¿Cuántas monedas recibe cada pirata?`,
+        (n,b) => `Hay ${n} galletas para ${b} grumetes. Si todos reciben lo mismo, ¿cuántas galletas recibe cada uno?`,
+        (n,b) => `Un pirata cose ${n} botones en ${b} chaquetas, la misma cantidad en cada una. ¿Cuántos botones lleva cada chaqueta?`),
+      V(divNums(2,5,2,6),
+        (n,b) => `El mono del barco tiene ${n} plátanos y quiere darlos por igual a sus ${b} amigos. ¿Cuántos plátanos le tocan a cada amigo?`,
+        (n,b) => `Hay ${n} cocos para guardar en ${b} canastas con la misma cantidad. ¿Cuántos cocos van en cada canasta?`,
+        (n,b) => `La capitana reparte ${n} mapas entre ${b} barcos por igual. ¿Cuántos mapas recibe cada barco?`),
+      V(divNums(3,6,3,7),
+        (n,b) => `Hay ${n} balas de cañón y en cada caja caben ${b}. ¿Cuántas cajas se llenan?`,
+        (n,b) => `Hay ${n} remos y cada bote necesita ${b}. ¿Para cuántos botes alcanzan?`,
+        (n,b) => `Los piratas tienen ${n} monedas y cada espada cuesta ${b} monedas. ¿Cuántas espadas pueden comprar?`),
+      V(divNums(4,8,4,8),
+        (n,b) => `Hay ${n} piratas que se suben a ${b} botes, con el mismo número en cada bote. ¿Cuántos piratas van en cada bote?`,
+        (n,b) => `En el salón del barco hay ${n} sillas puestas en ${b} filas iguales. ¿Cuántas sillas hay en cada fila?`,
+        (n,b) => `Un loro comió ${n} semillas en ${b} días, la misma cantidad cada día. ¿Cuántas semillas comió por día?`),
+      V(divNums(6,9,5,9),
+        (n,b) => `Un tesoro de ${n} perlas se reparte por igual entre ${b} capitanes. ¿Cuántas perlas recibe cada capitán?`,
+        (n,b) => `Hay ${n} piratas y forman equipos de ${b}. ¿Cuántos equipos se forman?`,
+        (n,b) => `Un cofre de ${n} rubíes se guarda en ${b} bolsas iguales. ¿Cuántos rubíes van en cada bolsa?`),
+    ]},
+];
+const TREASURE = [130, 62];
+
+function solve(op, n) {
+  if (op === '+') return n.reduce((s, x) => s + x, 0);
+  if (op === '−') return n[0] - n[1];
+  if (op === '×') return n[0] * n[1];
+  return n[0] / n[1];
+}
+
+/* ---------- State ---------- */
+const KEY = 'tesoro-numeros-v1';
+const state = { scores: {}, seen: [], island: null, problems: [], q: 0, answer: '', tries: 0, hinted: false, solved: false, results: [], earned: 0 };
+let shipAt = null;
+
+const cleanSeen = a => Array.isArray(a) ? a.filter(k => typeof k === 'string').slice(-300) : [];
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || '{}'); if (s && s.scores) state.scores = s.scores; if (s) state.seen = cleanSeen(s.seen); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ scores: state.scores, seen: state.seen })); } catch (e) {} }
+/* No-repeat rules: stories seen (persisted, in order) and number combos used in this session (memory only) */
+const usedCombos = new Set();
+function pickVariant(isl, lv) {
+  const pre = `${isl.id}:${lv}:`, n = isl.levels[lv].length, idx = [...Array(n).keys()];
+  const mine = state.seen.filter(k => k.startsWith(pre));
+  let fresh = idx.filter(v => !mine.includes(pre + v));
+  if (!fresh.length) {                       // all seen: reset this level, but avoid the one used last
+    const last = mine.length ? +mine[mine.length - 1].slice(pre.length) : -1;
+    state.seen = state.seen.filter(k => !k.startsWith(pre));
+    fresh = idx.filter(v => v !== last); if (!fresh.length) fresh = idx;
+  }
+  const v = pick(fresh); state.seen.push(pre + v);
+  return v;
+}
+function makeProblem(isl, lv) {
+  const gen = isl.levels[lv][pickVariant(isl, lv)];
+  let p, key;
+  for (let t = 0; t < 20; t++) {
+    p = gen();
+    const nums = isl.op === '+' || isl.op === '×' ? [...p.nums].sort((x, y) => x - y) : p.nums;
+    key = `${isl.op}${nums.join(',')}`;
+    if (!usedCombos.has(key)) break;
+  }
+  usedCombos.add(key);
+  p.op = isl.op; p.answer = solve(isl.op, p.nums);
+  return p;
+}
+const done = i => state.scores[ISLANDS[i].id] != null;
+const unlocked = i => i === 0 || done(i - 1);
+const allDone = () => ISLANDS.every((_, i) => done(i));
+const total = () => ISLANDS.reduce((s, isl) => s + (state.scores[isl.id] || 0), 0);
+const nextIdx = () => { const i = ISLANDS.findIndex((_, k) => !done(k)); return i === -1 ? 4 : i; };
+
+/* ---------- Sound ---------- */
+let actx = null, muted = false;
+function tone(f, dur, type = 'sine', when = 0, vol = .14) {
+  if (muted) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+const sfx = {
+  tap: () => tone(620, .05, 'square', 0, .035),
+  ok: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, .2, 'triangle', i * .08)),
+  bad: () => { tone(196, .22, 'sawtooth', 0, .06); tone(147, .3, 'sawtooth', .13, .06); },
+  win: () => [392, 523, 659, 784, 659, 784, 1046].forEach((f, i) => tone(f, .28, 'triangle', i * .13, .12)),
+};
+$('mute').addEventListener('click', () => {
+  muted = !muted;
+  $('mute-wave').toggleAttribute('hidden', muted); $('mute-x').toggleAttribute('hidden', !muted);
+  $('mute').setAttribute('aria-label', muted ? 'Activar sonido' : 'Silenciar sonido');
+});
+
+/* ---------- Map drawing ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+function blob(cx, cy, R, seed, sx = 1.25, sy = .85, n = 16) {
+  const p = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / n * Math.PI * 2;
+    const k = 1 + .14 * Math.sin(3 * t + seed) + .09 * Math.sin(5 * t + seed * 2.3) + .05 * Math.cos(7 * t + seed);
+    p.push([cx + Math.cos(t) * R * k * sx, cy + Math.sin(t) * R * k * sy]);
+  }
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const f = v => v.toFixed(1);
+  let m = mid(p[n - 1], p[0]), d = `M${f(m[0])},${f(m[1])}`;
+  for (let i = 0; i < n; i++) { const q = mid(p[i], p[(i + 1) % n]); d += `Q${f(p[i][0])},${f(p[i][1])} ${f(q[0])},${f(q[1])}`; }
+  return d + 'Z';
+}
+function palm(x, y, s = 1) {
+  return `<g transform="translate(${x},${y}) scale(${s})"><path class="trunk" d="M0,0 Q3,-12 1,-24"/>
+    <path class="leaf" d="M1,-24 Q-10,-30 -17,-21 Q-8,-25 1,-24Z"/><path class="leaf" d="M1,-24 Q12,-31 18,-21 Q9,-25 1,-24Z"/>
+    <path class="leaf" d="M1,-24 Q-3,-36 -11,-36 Q-3,-31 1,-24Z"/><path class="leaf" d="M1,-24 Q6,-37 14,-34 Q5,-31 1,-24Z"/></g>`;
+}
+function decoFor(isl) {
+  const [x, y] = isl.pos;
+  if (isl.deco === 'skull') return `<path class="rock" d="M${x-20},${y+6} Q${x-22},${y-26} ${x},${y-28} Q${x+22},${y-26} ${x+20},${y+6} Z"/>
+    <circle class="eye" cx="${x-8}" cy="${y-12}" r="5"/><circle class="eye" cx="${x+8}" cy="${y-12}" r="5"/><path class="eye" d="M${x},${y-6} l-3,6 h6z"/>`;
+  if (isl.deco === 'volcano') return `<path class="volc" d="M${x-30},${y+6} L${x-8},${y-30} L${x+8},${y-30} L${x+30},${y+6} Z"/>
+    <path class="lava" d="M${x-8},${y-30} L${x+8},${y-30} L${x+5},${y-22} L${x+1},${y-26} L${x-3},${y-19} L${x-5},${y-26} Z"/>`;
+  return palm(x - 14, y + 4) + palm(x + 12, y + 6, .85);
+}
+function drawWaves() {
+  const spots = [[34,96],[226,40],[352,104],[204,262],[352,258],[36,350],[188,388],[250,494],[34,176],[210,128],[180,470],[340,410]];
+  $('waves').innerHTML = spots.map(([x, y]) => `<path class="wave" d="M${x},${y} q5,-5 10,0 q5,-5 10,0"/>`).join('');
+}
+function drawIslands() {
+  const R = 38, ni = nextIdx();
+  let html = '';
+  ISLANDS.forEach((isl, i) => {
+    const [x, y] = isl.pos, lock = !unlocked(i), fin = done(i);
+    const cls = ['island', lock ? 'locked' : '', i === ni ? 'next' : ''].join(' ');
+    const sub = lock ? 'Bloqueada' : fin ? `${state.scores[isl.id]} de 10 doblones` : '¡Zarpa aquí!';
+    const label = `${isl.name}, ${isl.word}. ${sub}`;
+    html += `<g class="${cls}" data-i="${i}" ${lock ? 'aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${label}">
+      <ellipse class="ring" cx="${x}" cy="${y}" rx="${R * 1.55}" ry="${R * 1.15}"/>
+      <path class="shallow" d="${blob(x, y, R + 9, isl.seed)}"/>
+      <path class="sand" d="${blob(x, y, R, isl.seed)}"/>
+      <path class="green" d="${blob(x - 4, y - 4, R * .55, isl.seed + 1)}"/>
+      ${decoFor(isl)}
+      ${fin ? `<line class="flagpole" x1="${x + 26}" y1="${y + 2}" x2="${x + 26}" y2="${y - 30}"/><path class="flagcloth" d="M${x + 26},${y - 30} L${x + 44},${y - 25} L${x + 26},${y - 19} Z"/>` : ''}
+      <g class="badge" transform="translate(${x - R * 1.15},${y - R * .75})"><circle r="17"/><text>${isl.op}</text></g>
+      <text class="isl-label" x="${x}" y="${y + R + 22}">${isl.name}</text>
+      <text class="isl-sub" x="${x}" y="${y + R + 38}">${sub}</text>
+    </g>`;
+  });
+  const [tx, ty] = TREASURE, open = allDone();
+  html += `<g class="island ${open ? 'next' : 'locked'}" data-i="4" ${open ? 'tabindex="0"' : 'aria-disabled="true"'} role="button" aria-label="El tesoro${open ? '' : ', bloqueado'}">
+    <ellipse class="ring" cx="${tx}" cy="${ty}" rx="40" ry="30"/>
+    <path class="shallow" d="${blob(tx, ty, 26, 7.2)}"/>
+    <path class="sand" d="${blob(tx, ty, 20, 7.2)}"/>
+    <path class="xmark" d="M${tx - 9},${ty - 9} L${tx + 9},${ty + 9} M${tx + 9},${ty - 9} L${tx - 9},${ty + 9}"/>
+    <text class="isl-label" x="${tx + 70}" y="${ty + 6}">El tesoro</text>
+  </g>`;
+  $('islands').innerHTML = html;
+}
+function shipPos(i) { const p = i >= 4 ? TREASURE : ISLANDS[i].pos; return [p[0] - 60, p[1] + 20]; }
+function moveShip() {
+  const target = nextIdx(), ship = $('ship');
+  const place = i => { const [x, y] = shipPos(i); ship.style.transform = `translate(${x}px, ${y}px)`; };
+  if (shipAt === null || shipAt === target) { ship.style.transition = 'none'; place(target); ship.getBoundingClientRect(); ship.style.transition = ''; }
+  else { place(shipAt); ship.getBoundingClientRect(); requestAnimationFrame(() => place(target)); }
+  shipAt = target;
+}
+
+/* Mini map: four pieces, revealed island by island (bottom-left, bottom-right, top-left, top-right) */
+function miniMap(svg, reveal) {
+  const q = [[0,60],[60,60],[0,0],[60,0]];
+  svg.innerHTML = `<rect class="mini-bg" width="120" height="120" rx="6"/>
+    <path class="mini-route" d="M12,104 C40,116 84,104 96,86 C106,66 30,74 24,46 C18,24 70,36 96,22"/>
+    <path class="mini-x" d="M90,16 L102,28 M102,16 L90,28"/>
+    <circle cx="20" cy="98" r="7" fill="#4f8a3c"/><circle cx="96" cy="86" r="7" fill="#4f8a3c"/><circle cx="24" cy="46" r="7" fill="#4f8a3c"/><circle cx="74" cy="34" r="6" fill="#4f8a3c"/>
+    ${q.map(([x, y], i) => reveal[i] ? '' : `<rect class="fog" x="${x + 1}" y="${y + 1}" width="58" height="58" rx="4"/><text class="fog-q" x="${x + 30}" y="${y + 31}">?</text>`).join('')}`;
+}
+
+function renderMap() {
+  drawIslands(); moveShip();
+  const n = ISLANDS.filter((_, i) => done(i)).length;
+  miniMap($('mini'), ISLANDS.map((_, i) => done(i)));
+  $('voy-title').textContent = n === 4 ? '¡Mapa completo!' : `Trozos del mapa: ${n} de 4`;
+  $('voy-text').textContent = n === 0 ? 'Cada isla esconde un trozo del mapa. Toca la Isla del Coco para empezar la aventura.'
+    : n === 4 ? 'La X marca el lugar. Toca el tesoro en el mapa para abrir el cofre.'
+    : `Sigue navegando. La próxima parada es la ${ISLANDS[n].name}, la isla de la ${ISLANDS[n].word}.`;
+  $('reset').hidden = n === 0; $('reset').textContent = 'Empezar de nuevo'; resetArmed = false;
+  updatePurse();
+}
+function updatePurse(extra = 0) { $('purse-n').textContent = total() + extra; }
+function bumpPurse() { const p = $('purse'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
+
+let resetArmed = false;
+$('reset').addEventListener('click', () => {
+  if (!resetArmed) { resetArmed = true; $('reset').textContent = '¿Seguro? Toca otra vez para borrar el progreso'; return; }
+  state.scores = {}; usedCombos.clear(); save(); shipAt = null; renderMap();
+});
+
+function onIslandPick(e) {
+  const g = e.target.closest('.island'); if (!g || g.classList.contains('locked')) return;
+  const i = +g.dataset.i; sfx.tap();
+  if (i === 4) showFinal(); else startIsland(i);
+}
+$('islands').addEventListener('click', onIslandPick);
+$('islands').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onIslandPick(e); } });
+
+/* ---------- Screens ---------- */
+function show(id) {
+  ['map-screen', 'island-screen', 'final-screen'].forEach(s => $(s).hidden = s !== id);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ---------- Island play ---------- */
+function startIsland(i) {
+  const isl = ISLANDS[i];
+  state.island = i; state.q = 0; state.earned = 0; state.results = [];
+  state.problems = isl.levels.map((_, lv) => makeProblem(isl, lv)); save();
+  $('isl-name').textContent = `${isl.name} · ${isl.word[0].toUpperCase() + isl.word.slice(1)}`;
+  show('island-screen'); loadProblem();
+}
+function loadProblem() {
+  const p = state.problems[state.q];
+  state.answer = ''; state.tries = 0; state.hinted = false; state.solved = false;
+  $('qlabel').textContent = `Reto ${state.q + 1} de 5`;
+  $('story').textContent = p.text;
+  $('feedback').textContent = ''; $('feedback').className = 'feedback';
+  $('hint').hidden = true; $('hint').innerHTML = '';
+  $('helpbtn').disabled = false;
+  $('next').hidden = true; $('keypad').hidden = false;
+  renderEquation(); renderPips(); updatePurse(state.earned);
+}
+function renderEquation(cls = '') {
+  const p = state.problems[state.q];
+  const parts = p.nums.map(n => `<span>${n}</span>`).join(`<span class="op">${p.op}</span>`);
+  $('equation').innerHTML = `${parts}<span class="op">=</span><span class="blank ${cls}" id="blank">${state.answer || '?'}</span>`;
+}
+function renderPips() {
+  $('pips').innerHTML = [0,1,2,3,4].map(k => {
+    const res = state.results[k];
+    const c = res == null ? (k === state.q ? 'now' : '') : res > 0 ? 'done' : 'miss';
+    return `<span class="pip ${c}" aria-label="Reto ${k + 1}">${res == null ? k + 1 : res > 0 ? '' : '×'}</span>`;
+  }).join('');
+}
+function buildKeypad() {
+  const keys = ['1','2','3','4','5','6','7','8','9','del','0','go'];
+  $('keypad').innerHTML = keys.map(k => k === 'del' ? `<button class="key del" data-k="del" aria-label="Borrar">⌫ Borrar</button>`
+    : k === 'go' ? `<button class="key go" data-k="go">¡Fuego!<br>Comprobar</button>` : `<button class="key" data-k="${k}">${k}</button>`).join('');
+}
+$('keypad').addEventListener('click', e => { const b = e.target.closest('.key'); if (b) press(b.dataset.k); });
+
+function press(k) {
+  if (state.solved) return;
+  if (k === 'go') return check();
+  sfx.tap();
+  if (k === 'del') state.answer = state.answer.slice(0, -1);
+  else if (state.answer.length < 3) state.answer = (state.answer === '0' ? '' : state.answer) + k;
+  renderEquation();
+}
+const PRAISE = ['¡Correcto!', '¡Arrr, muy bien!', '¡Justo en el blanco!', '¡Así se navega!', '¡Excelente puntería!'];
+function check() {
+  const p = state.problems[state.q], fb = $('feedback');
+  if (state.answer === '') { fb.className = 'feedback bad'; fb.textContent = 'Escribe un número con los botones.'; return; }
+  const v = +state.answer;
+  if (v === p.answer) {
+    const pts = state.tries === 0 && !state.hinted ? 2 : 1;
+    state.earned += pts; state.results[state.q] = pts; state.solved = true;
+    sfx.ok(); renderEquation('right'); bumpPurse(); updatePurse(state.earned);
+    fb.className = 'feedback good'; fb.textContent = `${pick(PRAISE)} Ganas ${pts} ${pts === 1 ? 'doblón' : 'doblones'}.`;
+    finishProblem();
+    return;
+  }
+  state.tries++; sfx.bad(); renderEquation('wrong');
+  fb.className = 'feedback bad';
+  if (state.tries >= 3) {
+    state.results[state.q] = 0; state.solved = true;
+    fb.textContent = `La respuesta era ${p.answer}. ¡En el próximo reto lo logras!`;
+    state.answer = String(p.answer); renderEquation('right'); showHint(true);
+    finishProblem(); return;
+  }
+  fb.textContent = v < p.answer ? 'Casi. Tu número es pequeño, prueba con uno más grande.' : 'Casi. Tu número es grande, prueba con uno más pequeño.';
+  if (state.tries === 2) showHint();
+  state.answer = '';
+  setTimeout(() => { if (!state.solved) renderEquation(); }, 900);
+}
+function finishProblem() {
+  renderPips();
+  $('keypad').hidden = true; $('helpbtn').disabled = true;
+  const last = state.q === 4;
+  $('next').textContent = last ? 'Terminar la isla →' : 'Siguiente reto →';
+  $('next').hidden = false; $('next').focus({ preventScroll: true });
+}
+$('next').addEventListener('click', () => {
+  sfx.tap();
+  if (state.q < 4) { state.q++; loadProblem(); } else islandComplete();
+});
+$('helpbtn').addEventListener('click', () => { sfx.tap(); showHint(); });
+$('back').addEventListener('click', () => { sfx.tap(); show('map-screen'); renderMap(); });
+
+/* ---------- Parrot hints ---------- */
+const coins = (n, cls = '') => Array.from({ length: n }, () => `<span class="coin ${cls}"></span>`).join('');
+function showHint(afterReveal = false) {
+  const p = state.problems[state.q], [a, b] = p.nums, h = $('hint');
+  if (!afterReveal) state.hinted = true;
+  let txt = '', vis = '';
+  if (p.op === '+') {
+    if (p.answer <= 40) {
+      txt = 'El loro dice: <b>junta todas las monedas</b> y cuéntalas una por una.';
+      vis = `<div class="dots">${p.nums.map((n, i) => `<div class="grp g${i}">${coins(n)}</div>`).join('<span class="plus">+</span>')}</div>`;
+    } else {
+      const dt = Math.floor(a / 10) * 10 + Math.floor(b / 10) * 10, du = a % 10 + b % 10;
+      txt = `El loro dice: <b>suma primero las decenas</b>: ${Math.floor(a / 10) * 10} + ${Math.floor(b / 10) * 10} = ${dt}. Después las unidades: ${a % 10} + ${b % 10} = ${du}. Ahora junta ${dt} + ${du}.`;
+    }
+  } else if (p.op === '−') {
+    if (a <= 40) {
+      txt = `El loro dice: hay ${a} monedas. <b>Tacha las ${b} que se van</b> y cuenta las que quedan.`;
+      vis = `<div class="dots"><div class="grp" style="max-width:220px">${coins(a - b)}${coins(b, 'gone')}</div></div>`;
+    } else {
+      const bt = Math.floor(b / 10) * 10, bu = b % 10;
+      txt = `El loro dice: <b>quita primero las decenas</b>: ${a} − ${bt} = ${a - bt}.` + (bu ? ` Después quita las unidades: ${a - bt} − ${bu}.` : '');
+    }
+  } else if (p.op === '×') {
+    txt = `El loro dice: son <b>${a} filas de ${b}</b>. Puedes sumar ${Array(Math.min(a, 9)).fill(b).join(' + ')}.`;
+    vis = `<div class="rows">${Array.from({ length: a }, () => `<div class="row">${coins(b)}</div>`).join('')}</div>`;
+  } else {
+    txt = `El loro dice: <b>¿qué número por ${b} da ${a}?</b> Cada fila tiene ${b} monedas: cuenta cuántas filas hay.`;
+    vis = `<div class="rows">${Array.from({ length: a / b }, () => `<div class="row">${coins(b)}</div>`).join('')}</div>`;
+  }
+  h.innerHTML = `<p>${txt}</p>${vis}`; h.hidden = false;
+  $('helpbtn').disabled = true;
+}
+
+/* ---------- Island complete ---------- */
+function islandComplete() {
+  const i = state.island, isl = ISLANDS[i];
+  const prev = state.scores[isl.id];
+  shipAt = nextIdx();
+  state.scores[isl.id] = prev == null ? state.earned : Math.max(prev, state.earned);
+  save(); sfx.win();
+  const last = allDone();
+  $('m-title').textContent = state.earned >= 8 ? '¡Isla conquistada!' : '¡Isla superada!';
+  $('m-coins').innerHTML = `<span class="coin"></span> ${state.earned} de 10 doblones`;
+  miniMap($('m-piece'), ISLANDS.map((_, k) => done(k)));
+  $('m-text').textContent = last ? 'Tienes los cuatro trozos. ¡El mapa está completo y la X marca el tesoro!'
+    : `Encontraste un trozo del mapa del tesoro. Ahora puedes navegar a la ${ISLANDS[Math.min(i + 1, 3)].name}.`;
+  if (done(i) && prev != null && i < nextIdx() - 1) $('m-text').textContent = 'Volviste a jugar esta isla. Guardamos tu mejor resultado.';
+  $('m-btn').textContent = last ? 'Ir por el tesoro' : 'Volver al mapa';
+  $('modal').hidden = false; $('m-btn').focus();
+}
+$('m-btn').addEventListener('click', () => {
+  $('modal').hidden = true; sfx.tap();
+  show('map-screen'); renderMap();
+});
+
+/* ---------- Final ---------- */
+function showFinal() {
+  const t = total();
+  $('final-n').textContent = t;
+  const [rank, msg] = t >= 36 ? ['Leyenda de los siete mares', 'Resolviste casi todo a la primera. Ningún pirata cuenta mejor que tú.']
+    : t >= 28 ? ['Navegante experto', 'Sumas, restas, multiplicas y divides como un pirata de verdad.']
+    : t >= 18 ? ['Pirata valiente', 'Llegaste al tesoro. Juega otra vez para ganar más doblones.']
+    : ['Grumete en entrenamiento', 'El tesoro es tuyo. Practica un poco más y subirás de rango.'];
+  $('rank').textContent = rank; $('rank-text').textContent = msg;
+  show('final-screen');
+  // restart the chest animation
+  const chest = document.querySelector('.chest'), clone = chest.cloneNode(true); chest.replaceWith(clone);
+  sfx.win(); coinRain();
+}
+$('again').addEventListener('click', () => { state.scores = {}; usedCombos.clear(); save(); shipAt = null; sfx.tap(); show('map-screen'); renderMap(); });
+
+function coinRain() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = $('rain'), ctx = c.getContext('2d'); c.hidden = false;
+  const W = c.width = innerWidth, H = c.height = innerHeight;
+  const drops = Array.from({ length: 70 }, () => ({ x: Math.random() * W, y: -Math.random() * H, v: 2 + Math.random() * 4, r: 7 + Math.random() * 7, s: Math.random() * 6 }));
+  const t0 = performance.now();
+  (function frame(t) {
+    ctx.clearRect(0, 0, W, H);
+    drops.forEach(d => {
+      d.y += d.v; d.s += .08;
+      const w = Math.abs(Math.cos(d.s)) * d.r + 1;
+      ctx.fillStyle = '#b57610'; ctx.beginPath(); ctx.ellipse(d.x, d.y, w, d.r, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#eaad31'; ctx.beginPath(); ctx.ellipse(d.x, d.y, Math.max(w - 2, .5), d.r - 2, 0, 0, Math.PI * 2); ctx.fill();
+    });
+    if (t - t0 < 4200) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, W, H); c.hidden = true; }
+  })(t0);
+}
+
+/* ---------- Keyboard ---------- */
+document.addEventListener('keydown', e => {
+  if ($('island-screen').hidden || !$('modal').hidden) return;
+  if (/^[0-9]$/.test(e.key)) press(e.key);
+  else if (e.key === 'Backspace') { e.preventDefault(); press('del'); }
+  else if (e.key === 'Enter' && !state.solved && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); check(); }
+});
+
+/* ---------- Boot ---------- */
+function start(data) {
+  load();
+  if (data && data.scores) state.scores = data.scores;
+  if (data && data.seen) state.seen = cleanSeen(data.seen);
+  buildKeypad(); drawWaves(); renderMap();
+}
+try { window.claude?.hot?.snapshot?.(() => ({ scores: state.scores, seen: state.seen })); } catch (e) {}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
