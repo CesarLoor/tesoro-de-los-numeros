@@ -104,6 +104,13 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold); out
 .topbar{display:flex; align-items:center; gap:12px}
 .back{background:var(--wood-dark); color:var(--parchment); border:2px solid var(--gold-deep); border-radius:999px; padding:6px 14px; font-weight:700}
 .topbar h2{margin:0; flex:1; min-width:0; font-family:var(--font-display); font-weight:400; font-size:1.8rem; color:var(--gold); line-height:1.05}
+.lives{display:flex; gap:4px; flex:none}
+.heart{width:28px; height:28px; display:block}
+.heart path{fill:var(--coral); stroke:var(--parchment); stroke-width:1.5}
+.heart.lost path{fill:none; stroke:var(--foam); opacity:.45}
+.heart.breaking{animation:heartbreak .7s}
+@keyframes heartbreak{0%{transform:scale(1)}30%{transform:scale(1.4) rotate(-12deg)}60%{transform:scale(.8) rotate(10deg)}100%{transform:scale(1)}}
+.card .lives .heart{width:36px; height:36px}
 .pips{display:flex; gap:8px; justify-content:center}
 .pip{width:30px; height:30px; border-radius:50%; border:2px dashed var(--foam); opacity:.6; display:grid; place-items:center; font-size:.8rem; font-weight:700; color:var(--foam)}
 .pip.now{opacity:1; border-style:solid; border-color:var(--gold); color:var(--gold)}
@@ -182,6 +189,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold); out
   .brand h1{font-size:2rem}
   .story{font-size:1.15rem}
   .equation{font-size:1.9rem}
+  .topbar h2{font-size:1.35rem}
+  .heart{width:24px; height:24px}
   .voyage{grid-template-columns:1fr; justify-items:center; text-align:center}
   .reset{justify-self:center}
 }
@@ -248,6 +257,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold); out
     <div class="topbar">
       <button class="back" id="back">← Mapa</button>
       <h2 id="isl-name"></h2>
+      <div class="lives" id="lives" role="img" aria-label="3 vidas"></div>
     </div>
     <div class="pips" id="pips" aria-label="Progreso de la isla"></div>
     <article class="scroll">
@@ -478,6 +488,7 @@ const sfx = {
   tap: () => tone(620, .05, 'square', 0, .035),
   ok: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, .2, 'triangle', i * .08)),
   bad: () => { tone(196, .22, 'sawtooth', 0, .06); tone(147, .3, 'sawtooth', .13, .06); },
+  over: () => [392, 330, 262, 196].forEach((f, i) => tone(f, .32, 'triangle', i * .18, .1)),
   win: () => [392, 523, 659, 784, 659, 784, 1046].forEach((f, i) => tone(f, .28, 'triangle', i * .13, .12)),
 };
 $('mute').addEventListener('click', () => {
@@ -604,7 +615,7 @@ function show(id) {
 /* ---------- Island play ---------- */
 function startIsland(i) {
   const isl = ISLANDS[i];
-  state.island = i; state.q = 0; state.earned = 0; state.results = [];
+  state.island = i; state.q = 0; state.earned = 0; state.results = []; state.lives = LIVES;
   state.problems = isl.levels.map((_, lv) => makeProblem(isl, lv)); save();
   $('isl-name').textContent = `${isl.name} · ${isl.word[0].toUpperCase() + isl.word.slice(1)}`;
   show('island-screen'); loadProblem();
@@ -618,7 +629,16 @@ function loadProblem() {
   $('hint').hidden = true; $('hint').innerHTML = '';
   $('helpbtn').disabled = false;
   $('next').hidden = true; $('keypad').hidden = false;
-  renderEquation(); renderPips(); updatePurse(state.earned);
+  renderEquation(); renderPips(); renderLives(); updatePurse(state.earned);
+}
+/* Lives: 3 per island; every wrong answer costs one */
+const LIVES = 3;
+const HEART = '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>';
+const hearts = (left, breaking = -1) => Array.from({ length: LIVES }, (_, k) =>
+  `<svg class="heart ${k >= left ? 'lost' : ''} ${k === breaking ? 'breaking' : ''}" viewBox="0 0 24 24" aria-hidden="true">${HEART}</svg>`).join('');
+function renderLives(justLost = false) {
+  $('lives').innerHTML = hearts(state.lives, justLost ? state.lives : -1);
+  $('lives').setAttribute('aria-label', `${state.lives} ${state.lives === 1 ? 'vida' : 'vidas'}`);
 }
 function renderEquation(cls = '') {
   const p = state.problems[state.q];
@@ -660,15 +680,11 @@ function check() {
     finishProblem();
     return;
   }
-  state.tries++; sfx.bad(); renderEquation('wrong');
+  state.tries++; state.lives--; sfx.bad(); renderEquation('wrong'); renderLives(true);
   fb.className = 'feedback bad';
-  if (state.tries >= 3) {
-    state.results[state.q] = 0; state.solved = true;
-    fb.textContent = `La respuesta era ${p.answer}. ¡En el próximo reto lo logras!`;
-    state.answer = String(p.answer); renderEquation('right'); showHint(true);
-    finishProblem(); return;
-  }
-  fb.textContent = v < p.answer ? 'Casi. Tu número es pequeño, prueba con uno más grande.' : 'Casi. Tu número es grande, prueba con uno más pequeño.';
+  if (state.lives <= 0) { state.solved = true; setTimeout(gameOver, 700); fb.textContent = '¡Oh, no! Te quedaste sin vidas.'; return; }
+  fb.textContent = (v < p.answer ? 'Tu número es pequeño, prueba con uno más grande.' : 'Tu número es grande, prueba con uno más pequeño.')
+    + ` Te ${state.lives === 1 ? 'queda 1 vida' : `quedan ${state.lives} vidas`}.`;
   if (state.tries === 2) showHint();
   state.answer = '';
   setTimeout(() => { if (!state.solved) renderEquation(); }, 900);
@@ -735,10 +751,26 @@ function islandComplete() {
     : `Encontraste un trozo del mapa del tesoro. Ahora puedes navegar a la ${ISLANDS[Math.min(i + 1, 3)].name}.`;
   if (done(i) && prev != null && i < nextIdx() - 1) $('m-text').textContent = 'Volviste a jugar esta isla. Guardamos tu mejor resultado.';
   $('m-btn').textContent = last ? 'Ir por el tesoro' : 'Volver al mapa';
+  modalMode = 'done'; $('m-piece').hidden = false;
+  $('modal').hidden = false; $('m-btn').focus();
+}
+/* Out of lives: the island starts over from reto 1 with new problems */
+let modalMode = 'done';
+function gameOver() {
+  if ($('island-screen').hidden) return;     // they already went back to the map
+  const p = state.problems[state.q], isl = ISLANDS[state.island];
+  sfx.over();
+  $('m-title').textContent = '¡Te quedaste sin vidas!';
+  $('m-coins').innerHTML = `<div class="lives">${hearts(0)}</div>`;
+  $('m-piece').hidden = true;
+  $('m-text').textContent = `La respuesta era ${p.answer}. Vuelve a empezar la ${isl.name} con retos nuevos y 3 vidas. ¡Tú puedes!`;
+  $('m-btn').textContent = 'Empezar la isla otra vez';
+  modalMode = 'over';
   $('modal').hidden = false; $('m-btn').focus();
 }
 $('m-btn').addEventListener('click', () => {
   $('modal').hidden = true; sfx.tap();
+  if (modalMode === 'over') return startIsland(state.island);
   show('map-screen'); renderMap();
 });
 

@@ -39,8 +39,9 @@ Cada reto muestra la historia y debajo la operación con un espacio para la resp
 
 - Teclado en pantalla con botones de madera (0–9, Borrar, "¡Fuego! Comprobar"). También funciona con el teclado físico (números, Retroceso, Enter).
 - **Acierto al primer intento sin ayuda**: 2 doblones. **Acierto con ayuda o en el segundo o tercer intento**: 1 doblón.
-- **Error**: el mensaje dice si el número es muy grande o muy pequeño. Al segundo error aparece la ayuda del loro sola.
-- **Tercer error**: se muestra la respuesta correcta con la ayuda, se ganan 0 doblones y se pasa al siguiente reto (para que el niño no se frustre).
+- **Vidas**: cada isla empieza con 3 vidas (corazones arriba a la derecha). Cada respuesta equivocada quita una vida.
+- **Error**: el mensaje dice si el número es muy grande o muy pequeño y cuántas vidas quedan. Al segundo error en el mismo reto aparece la ayuda del loro sola.
+- **Sin vidas**: aparece "¡Te quedaste sin vidas!" con la respuesta correcta, y la isla vuelve a empezar desde el reto 1 con retos nuevos y 3 vidas. Las islas ya ganadas no se pierden.
 - **Ayuda del loro** (botón):
   - Suma: grupos de monedas para contar (si el total es 40 o menos); si no, sumar decenas y luego unidades.
   - Resta: monedas tachadas (hasta 40); si no, restar decenas y luego unidades.
